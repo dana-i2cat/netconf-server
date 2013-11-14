@@ -38,6 +38,9 @@ public class NetconfSubsystem implements Command, SessionAware {
 	private MessageStore		messageStore;
 	private BehaviourContainer	behaviourContainer	= null;
 
+	private NetconfProcessor	netconfProcessor;
+	private Thread				clientThread;
+
 	public NetconfSubsystem(MessageStore messageStore, BehaviourContainer behaviourContainer) {
 		this.messageStore = messageStore;
 		this.behaviourContainer = behaviourContainer;
@@ -80,16 +83,23 @@ public class NetconfSubsystem implements Command, SessionAware {
 		this.env = env;
 
 		// initialize Netconf processor
-		NetconfProcessor netconfProcessor = new NetconfProcessor(in, out, err, callback);
+		netconfProcessor = new NetconfProcessor(in, out, err, callback);
 		netconfProcessor.setMessageStore(messageStore);
 		netconfProcessor.setBehaviors(behaviourContainer);
 
 		log.info("Starting new client thread...");
-		new Thread(netconfProcessor, "Client thread").start();
+		(clientThread = new Thread(netconfProcessor, "Client thread")).start();
 	}
 
 	@Override
 	public void destroy() {
+		netconfProcessor.waitAndInterruptThreads();
+		try {
+			clientThread.join(2000);
+		} catch (InterruptedException e) {
+			log.warn("Error joining Client thread" + e.getMessage());
+		}
+		clientThread.interrupt();
 		log.info("Netconf Subsystem destroyed");
 	}
 

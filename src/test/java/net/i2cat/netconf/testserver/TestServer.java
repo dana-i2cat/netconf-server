@@ -17,6 +17,7 @@ import net.i2cat.netconf.rpc.Query;
 import net.i2cat.netconf.rpc.QueryFactory;
 import net.i2cat.netconf.rpc.RPCElement;
 import net.i2cat.netconf.rpc.Reply;
+import net.i2cat.netconf.rpc.ReplyFactory;
 import net.i2cat.netconf.rpc.SerializableReply;
 import net.i2cat.netconf.server.Behaviour;
 import net.i2cat.netconf.server.Server;
@@ -126,6 +127,72 @@ public class TestServer {
 			Assert.assertEquals("Error severity must be 'error'", ErrorSeverity.ERROR, reply.getErrors().get(0).getSeverity());
 		} catch (Exception e) {
 			Assert.fail("Error creating session: " + e.getMessage());
+		} finally {
+			server.stopServer();
+		}
+	}
+
+	@Test
+	public void testConsumingBehaviours() {
+		Server server = Server.createServerStoringMessages(2222);
+
+		// define behaviours
+		Query bQuery = QueryFactory.newGetRouteInformation();
+		Reply bReply = new SerializableReply();
+		Error error = ErrorFactory.newError(ErrorType.APPLICATION, ErrorTag.OPERATION_FAILED, ErrorSeverity.ERROR, null, null, null, null);
+		bReply.addError(error);
+		Behaviour behaviour = new Behaviour(bQuery, bReply, true);
+		server.defineBehaviour(behaviour);
+
+		bQuery = QueryFactory.newDiscardChanges();
+		bReply = ReplyFactory.newOk(bQuery, null);
+		behaviour = new Behaviour(bQuery, bReply, true);
+		server.defineBehaviour(behaviour);
+
+		bQuery = QueryFactory.newGetRouteInformation();
+		bReply = ReplyFactory.newOk(bQuery, null);
+		behaviour = new Behaviour(bQuery, bReply, true);
+		server.defineBehaviour(behaviour);
+
+		// start the server
+		server.startServer();
+
+		try {
+			SessionContext sessionContext = new SessionContext();
+			sessionContext.setURI(new URI("ssh://user:user@localhost:2222/"));
+
+			INetconfSession session = new NetconfSession(sessionContext);
+
+			session.connect();
+
+			// send first query
+			Query query = QueryFactory.newGetRouteInformation();
+			Reply reply = session.sendSyncQuery(query);
+
+			// assertions
+			Assert.assertEquals("Reply must contain 1 error", 1, reply.getErrors().size());
+			Assert.assertEquals("Reply error must be of 'type application'", ErrorType.APPLICATION, reply.getErrors().get(0).getType());
+			Assert.assertEquals("Error tag must be 'operation-failed'", ErrorTag.OPERATION_FAILED, reply.getErrors().get(0).getTag());
+			Assert.assertEquals("Error severity must be 'error'", ErrorSeverity.ERROR, reply.getErrors().get(0).getSeverity());
+
+			// send second query
+			query = QueryFactory.newDiscardChanges();
+			reply = session.sendSyncQuery(query);
+
+			// assertions
+			Assert.assertEquals("Reply must contain 0 errors", 0, reply.getErrors().size());
+			Assert.assertEquals("Reply must be OK", true, reply.isOk());
+
+			// send third query
+			query = QueryFactory.newGetRouteInformation();
+			reply = session.sendSyncQuery(query);
+
+			// assertions
+			Assert.assertEquals("Reply must contain 0 errors", 0, reply.getErrors().size());
+			Assert.assertEquals("Reply must be OK", true, reply.isOk());
+
+		} catch (Exception e) {
+			Assert.fail("Error executing tests: " + e.getMessage());
 		} finally {
 			server.stopServer();
 		}

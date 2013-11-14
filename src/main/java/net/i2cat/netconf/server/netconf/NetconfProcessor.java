@@ -150,19 +150,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 		} catch (Exception e) {
 			log.error("Exception caught in Netconf subsystem", e);
 		} finally {
-			// wait for thread
-			try {
-				messageProcessorThread.join(2000);
-			} catch (InterruptedException e) {
-				log.error("Error waiting for thread end", e);
-			}
-
-			// kill thread if it don't finish naturally
-			if (messageProcessorThread != null && messageProcessorThread.isAlive()) {
-				log.debug("Killing message processor thread");
-				messageProcessorThread.interrupt();
-			}
-
+			waitAndInterruptThreads();
 			callback.onExit(0);
 		}
 	}
@@ -262,6 +250,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 	}
 
 	private void startMessageProcessor() {
+		log.info("Creating new message processor...");
 		messageProcessorThread = new Thread("Message processor") {
 			@Override
 			public void run() {
@@ -291,15 +280,23 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 							if (behaviours != null) {
 								Behaviour behaviour = null;
 								for (Behaviour b : behaviours) {
-									b.getQuery().getOperation().equals(query);
-									behaviour = b;
-									break;
+									if (b.getQuery().getOperation().equals(query.getOperation())) {
+										behaviour = b;
+										break;
+									}
 								}
 								if (behaviour != null) {
-									log.info("Behaviour matched. Sending reply...");
+									log.info("Behaviour matched.");
+									if (behaviour.isConsume()) {
+										log.info("Behaviour matched. Sending reply...");
+										behaviours.remove(behaviour);
+									}
+									log.info("Sending matched reply...");
 									SerializableReply reply = new SerializableReply(behaviour.getReply());
 									reply.setMessageId(query.getMessageId());
 									sendReply(reply);
+									// next iteration
+									continue;
 								}
 							}
 						}
@@ -326,30 +323,60 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 								sendOk(query);
 								status = Status.SESSION_CLOSED;
 								log.info("Session closed.");
+								// next iteration
+								continue;
 							} else if (operation.equals(Operation.GET_CONFIG)) {
 								log.info("Get-config received.");
 								sendFakeConfig(query);
+								// next iteration
+								continue;
 							} else {
 								log.info("Unknown query received, replying OK");
 								sendOk(query);
+								// next iteration
+								continue;
 							}
 						} else if (message instanceof Reply) {
 							if (status == Status.CLOSING_SESSION) {
 								log.info("Client confirms the close session request.");
 								status = Status.SESSION_CLOSED;
+								// next iteration
+								continue;
 							} else {
 								log.error("Unknown reply received!");
+								// next iteration
+								continue;
 							}
 						} else {
 							log.warn("Unknown message: " + message.toXML());
+							// next iteration
+							continue;
 						}
 					} catch (IOException e) {
 						log.error("Error sending reply", e);
+						break;
 					}
 				}
+				log.trace("Message processor ended");
 			}
 		};
 		messageProcessorThread.start();
+		log.info("Message processor started.");
+	}
+
+	public void waitAndInterruptThreads() {
+		// wait for thread
+		try {
+			messageProcessorThread.join(2000);
+		} catch (InterruptedException e) {
+			log.error("Error waiting for thread end", e);
+		}
+
+		// kill thread if it don't finish naturally
+		if (messageProcessorThread != null && messageProcessorThread.isAlive()) {
+			log.debug("Killing message processor thread");
+			messageProcessorThread.interrupt();
+		}
 	}
 
 	@Override
