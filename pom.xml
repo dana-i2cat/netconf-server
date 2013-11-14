@@ -3,7 +3,7 @@
 
 	<groupId>net.i2cat</groupId>
 	<artifactId>netconf-server</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>netconf-server</name>
@@ -234,7 +234,7 @@
 		<connection>scm:git:git://github.com/dana-i2cat/netconf-server.git</connection>
 		<developerConnection>scm:git:git@github.com:dana-i2cat/netconf-server.git</developerConnection>
 		<url>http://github.com/dana-i2cat/netconf-server</url>
-	  <tag>v0.0.1</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 </project>
