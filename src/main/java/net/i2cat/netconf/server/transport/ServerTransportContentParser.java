@@ -12,7 +12,7 @@ import net.i2cat.netconf.rpc.ErrorType;
 import net.i2cat.netconf.rpc.Hello;
 import net.i2cat.netconf.rpc.Operation;
 import net.i2cat.netconf.rpc.Query;
-import net.i2cat.netconf.rpc.SerializableReply;
+import net.i2cat.netconf.rpc.Reply;
 import net.i2cat.netconf.transport.TransportContentParser;
 
 import org.apache.commons.logging.Log;
@@ -23,7 +23,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.DefaultHandler2;
 
 /**
- * TRansport content parser for Netconf servers based on {@link TransportContentParser}
+ * Transport content parser for Netconf servers based on {@link TransportContentParser}
  * 
  * @author Julio Carlos Barrera
  * 
@@ -36,7 +36,7 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 
 	Hello					hello;
 	Query					query;
-	SerializableReply		reply;
+	Reply					reply;
 	String					messageId;
 	Error					error;
 
@@ -185,7 +185,7 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 
 			/* Reply tags */
 		} else if (localName.equalsIgnoreCase("rpc-reply")) {
-			reply = new SerializableReply();
+			reply = new Reply();
 
 			messageId = attributes.getValue("message-id");
 			if (messageId == null)

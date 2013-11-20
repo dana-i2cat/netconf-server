@@ -9,8 +9,8 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.i2cat.netconf.messageQueue.MessageQueue;
 import net.i2cat.netconf.messageQueue.MessageQueueListener;
-import net.i2cat.netconf.messageQueue.WorkingMessageQueue;
 import net.i2cat.netconf.rpc.Capability;
 import net.i2cat.netconf.rpc.Hello;
 import net.i2cat.netconf.rpc.Operation;
@@ -18,7 +18,6 @@ import net.i2cat.netconf.rpc.Query;
 import net.i2cat.netconf.rpc.RPCElement;
 import net.i2cat.netconf.rpc.Reply;
 import net.i2cat.netconf.rpc.ReplyFactory;
-import net.i2cat.netconf.rpc.SerializableReply;
 import net.i2cat.netconf.server.Behaviour;
 import net.i2cat.netconf.server.BehaviourContainer;
 import net.i2cat.netconf.server.MessageStore;
@@ -70,7 +69,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 	// XML parser & handler
 	private XMLReader						xmlParser;
 	private ServerTransportContentParser	xmlHandler;
-	private WorkingMessageQueue				messageQueue;
+	private MessageQueue					messageQueue;
 
 	// message processor thread
 	private Thread							messageProcessorThread;
@@ -94,7 +93,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 	public void run() {
 		// initialize XML parser & handler and message queue
 		try {
-			messageQueue = new WorkingMessageQueue();
+			messageQueue = new MessageQueue();
 
 			xmlHandler = new ServerTransportContentParser();
 			xmlHandler.setMessageQueue(messageQueue);
@@ -195,7 +194,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 
 	public void sendFakeConfig(Query configQuery) throws IOException {
 		InputStream configFileIs = Thread.currentThread().getContextClassLoader().getResourceAsStream("router_configs/router_config_A.xml");
-		SerializableReply reply = ReplyFactory.newGetConfigReply(configQuery, null, IOUtils.toString(configFileIs));
+		Reply reply = ReplyFactory.newGetConfigReply(configQuery, null, IOUtils.toString(configFileIs));
 		sendReply(reply);
 	}
 
@@ -216,7 +215,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 		send(query.toXML());
 	}
 
-	public void sendReply(SerializableReply reply) throws IOException {
+	public void sendReply(Reply reply) throws IOException {
 		send(reply.toXML());
 	}
 
@@ -292,9 +291,8 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 										behaviours.remove(behaviour);
 									}
 									log.info("Sending matched reply...");
-									SerializableReply reply = new SerializableReply(behaviour.getReply());
-									reply.setMessageId(query.getMessageId());
-									sendReply(reply);
+									behaviour.getReply().setMessageId(query.getMessageId());
+									sendReply(behaviour.getReply());
 									// next iteration
 									continue;
 								}
