@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features>
+	<feature name="netconf-server" version="${project.version}">
+		<bundle>mvn:net.i2cat.netconf/netconf4j/${netconf4j.version}</bundle>
+		<bundle>mvn:commons-logging/commons-logging/${commons-logging.version}</bundle>
+		<bundle>mvn:commons-io/commons-io/${commons-io.version}</bundle>
+		<bundle>mvn:log4j/log4j/${log4j.version}</bundle>
+		<bundle>mvn:org.apache.sshd/sshd-core/${sshd.version}</bundle>
+	</feature>
+</features>
