@@ -27,8 +27,7 @@
 		<java.version>1.6</java.version>
 		<!-- dependencies versions -->
 		<netconf4j.version>0.0.5</netconf4j.version>
-		<commons-logging.version>1.1.1</commons-logging.version>
-		<log4j.version>1.2.17</log4j.version>
+		<pax-logging.version>1.6.10</pax-logging.version>
 		<commons-io.version>1.4</commons-io.version>
 		<sshd.version>0.9.0</sshd.version>
 		<junit.version>4.10</junit.version>
@@ -42,18 +41,12 @@
 			<version>${netconf4j.version}</version>
 		</dependency>
 
-		<!-- Apache commons-logging and Log4j -->
+		<!-- Pax logging -->
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>${commons-logging.version}</version>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>${pax-logging.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-
 
 		<!-- Apache SSHD -->
 		<dependency>
