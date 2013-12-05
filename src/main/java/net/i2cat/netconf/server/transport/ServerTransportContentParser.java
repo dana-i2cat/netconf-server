@@ -73,6 +73,9 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 
 	/* Query operation tags (extracted from RFC 4741 Section 7 (http://tools.ietf.org/html/rfc4741#section-7) */
 	boolean					insideOperationTag		= false;
+	StringBuffer			operationTagContent		= new StringBuffer();
+	boolean					insideTarget			= false;
+	boolean					insideConfig			= false;
 
 	/* extra features from JUNOS (out RFC) */
 
@@ -97,6 +100,20 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 			dataTagContent.append("<" + localName + ">");
 		} else if (insideSoftwareInfoTag) {
 			softwareInfoTagContent.append("<" + localName + ">");
+		} else if (insideOperationTag) {
+			if (localName.equalsIgnoreCase("target")) {
+				insideTarget = true;
+			} else if (insideTarget) {
+				query.setTarget(localName);
+			} else if (localName.equalsIgnoreCase("config")) {
+				insideConfig = true;
+			} else if (insideConfig) {
+				operationTagContent.append("<" + localName);
+				for (int i = 0; i < attributes.getLength(); i++) {
+					operationTagContent.append(" " + attributes.getQName(i) + "=\"" + attributes.getValue(i) + "\"");
+				}
+				operationTagContent.append(">");
+			}
 		}
 
 		// log.debug("startElement <" + uri + "::" + localName + ">");
@@ -232,7 +249,7 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		super.characters(ch, start, length);
 
-		log.info(new String(ch, start, length));
+		// log.info(new String(ch, start, length));
 		// log.info(new String(ch));
 
 		if (insideCapabilityTag) {
@@ -243,7 +260,9 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 		} else if (insideDataTag) {
 			dataTagContent.append(ch, start, length);
 		} else if (insideOperationTag) {
-
+			if (insideConfig) {
+				operationTagContent.append(ch, start, length);
+			}
 		} else if (insideErrorAppTagTag) {
 			errorAppTagTagContent.append(ch, start, length);
 		} else if (insideErrorInfoTag) {
@@ -281,6 +300,14 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 			dataTagContent.append("</" + localName + ">");
 		} else if (insideSoftwareInfoTag && !localName.equalsIgnoreCase("software-information")) {
 			softwareInfoTagContent.append("</" + localName + ">");
+		} else if (insideOperationTag) {
+			if (localName.equalsIgnoreCase("target")) {
+				insideTarget = false;
+			} else if (localName.equalsIgnoreCase("config")) {
+				insideConfig = false;
+			} else if (insideConfig) {
+				operationTagContent.append("</" + localName + ">");
+			}
 		}
 
 		if (localName.equalsIgnoreCase("hello")) {
@@ -303,44 +330,65 @@ public class ServerTransportContentParser extends DefaultHandler2 {
 			query = null;
 		} else if (localName.equalsIgnoreCase(Operation.GET_CONFIG.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.EDIT_CONFIG.getName())) {
 			insideOperationTag = false;
+			query.setConfig(operationTagContent.toString());
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.COPY_CONFIG.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.DELETE_CONFIG.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.LOCK.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.UNLOCK.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.GET.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.CLOSE_SESSION.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.KILL_SESSION.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.COMMIT.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.SET_LOGICAL_ROUTER.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.GET_ROUTE_INFO.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.GET_INTERFACE_INFO.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.GET_SOFTWARE_INFO.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.GET_ROLLBACK_INFO.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.DISCARD.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.OPEN_CONFIG.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.CLOSE_CONFIG.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.LOAD_CONFIGURATION.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 		} else if (localName.equalsIgnoreCase(Operation.VALIDATE.getName())) {
 			insideOperationTag = false;
+			operationTagContent = new StringBuffer();
 
 			/* Reply tags */
 		} else if (localName.equalsIgnoreCase("rpc-reply")) {
