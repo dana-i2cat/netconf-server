@@ -193,7 +193,7 @@ public class NetconfProcessor implements Runnable, MessageQueueListener {
 	}
 
 	public void sendFakeConfig(Query configQuery) throws IOException {
-		InputStream configFileIs = Thread.currentThread().getContextClassLoader().getResourceAsStream("router_configs/router_config_A.xml");
+		InputStream configFileIs = this.getClass().getResourceAsStream("/router_configs/router_config_A.xml");
 		Reply reply = ReplyFactory.newGetConfigReply(configQuery, null, IOUtils.toString(configFileIs));
 		sendReply(reply);
 	}
