@@ -1,4 +1,4 @@
-package net.i2cat.netconf.testserver;
+package net.i2cat.netconf.server;
 
 import java.net.URI;
 import java.util.List;
@@ -18,9 +18,6 @@ import net.i2cat.netconf.rpc.QueryFactory;
 import net.i2cat.netconf.rpc.RPCElement;
 import net.i2cat.netconf.rpc.Reply;
 import net.i2cat.netconf.rpc.ReplyFactory;
-import net.i2cat.netconf.rpc.SerializableReply;
-import net.i2cat.netconf.server.Behaviour;
-import net.i2cat.netconf.server.Server;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -99,7 +96,7 @@ public class TestServer {
 
 		// define behaviours
 		Query bQuery = QueryFactory.newGetRouteInformation();
-		Reply bReply = new SerializableReply();
+		Reply bReply = new Reply();
 		Error error = ErrorFactory.newError(ErrorType.APPLICATION, ErrorTag.OPERATION_FAILED, ErrorSeverity.ERROR, null, null, null, null);
 		bReply.addError(error);
 		Behaviour behaviour = new Behaviour(bQuery, bReply);
@@ -138,7 +135,7 @@ public class TestServer {
 
 		// define behaviours
 		Query bQuery = QueryFactory.newGetRouteInformation();
-		Reply bReply = new SerializableReply();
+		Reply bReply = new Reply();
 		Error error = ErrorFactory.newError(ErrorType.APPLICATION, ErrorTag.OPERATION_FAILED, ErrorSeverity.ERROR, null, null, null, null);
 		bReply.addError(error);
 		Behaviour behaviour = new Behaviour(bQuery, bReply, true);

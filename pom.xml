@@ -1,16 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>net.i2cat</groupId>
 	<artifactId>netconf-server</artifactId>
 	<version>0.0.2-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>bundle</packaging>
+	<name>Netconf Server</name>
 
-	<name>netconf-server</name>
 	<url>http://www.i2cat.net</url>
-	<description>
-       Netconf Server
-    </description>
+	<description>Netconf Server</description>
 	<organization>
 		<name>Fundació Privada i2CAT, Internet i Innovació a Catalunya</name>
 		<url>http://www.i2cat.net/en</url>
@@ -28,9 +26,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.6</java.version>
 		<!-- dependencies versions -->
-		<netconf4j.version>0.0.4</netconf4j.version>
-		<commons-logging.version>1.1.1</commons-logging.version>
-		<log4j.version>1.2.17</log4j.version>
+		<netconf4j.version>0.0.6</netconf4j.version>
+		<pax-logging.version>1.6.10</pax-logging.version>
 		<commons-io.version>1.4</commons-io.version>
 		<sshd.version>0.9.0</sshd.version>
 		<junit.version>4.10</junit.version>
@@ -44,18 +41,12 @@
 			<version>${netconf4j.version}</version>
 		</dependency>
 
-		<!-- Apache commons-logging and Log4j -->
+		<!-- Pax logging -->
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>${commons-logging.version}</version>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>${pax-logging.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-
 
 		<!-- Apache SSHD -->
 		<dependency>
@@ -90,29 +81,6 @@
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>2.6</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.4</version>
-					<configuration>
-						<tarLongFileMode>gnu</tarLongFileMode>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.felix</groupId>
-					<artifactId>maven-bundle-plugin</artifactId>
-					<version>2.3.7</version>
-					<configuration>
-						<instructions>
-							<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						</instructions>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
 					<version>2.2.1</version>
 				</plugin>
@@ -134,6 +102,51 @@
 
 		<plugins>
 			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>attach-artifacts</id>
+						<phase>package</phase>
+						<goals>
+							<goal>attach-artifact</goal>
+						</goals>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<file>${basedir}/target/features.xml</file>
+									<type>xml</type>
+									<classifier>features</classifier>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
@@ -154,8 +167,24 @@
 					<localCheckout>true</localCheckout>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>
+							net.i2cat.netconf.server;version="${project.version}",
+							net.i2cat.netconf.server.exceptions;version="${project.version}"
+						</Export-Package>
+					</instructions>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+
 	<repositories>
 		<repository>
 			<id>maven.i2cat.net</id>
@@ -234,7 +263,7 @@
 		<connection>scm:git:git://github.com/dana-i2cat/netconf-server.git</connection>
 		<developerConnection>scm:git:git@github.com:dana-i2cat/netconf-server.git</developerConnection>
 		<url>http://github.com/dana-i2cat/netconf-server</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 </project>
