@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.i2cat</groupId>
 	<artifactId>netconf-server</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>Netconf Server</name>
 
@@ -262,7 +262,7 @@
 		<connection>scm:git:git://github.com/dana-i2cat/netconf-server.git</connection>
 		<developerConnection>scm:git:git@github.com:dana-i2cat/netconf-server.git</developerConnection>
 		<url>http://github.com/dana-i2cat/netconf-server</url>
-		<tag>v0.0.3</tag>
+		<tag>HEAD</tag>
 	</scm>
 	
 	<distributionManagement>
