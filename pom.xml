@@ -25,7 +25,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.6</java.version>
 		<!-- dependencies versions -->
-		<netconf4j.version>0.0.7</netconf4j.version>
+		<netconf4j.version>0.0.10-SNAPSHOT</netconf4j.version>
 		<pax-logging.version>1.6.10</pax-logging.version>
 		<commons-io.version>1.4</commons-io.version>
 		<sshd.version>0.9.0</sshd.version>
