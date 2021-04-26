@@ -27,7 +27,7 @@
 		<!-- dependencies versions -->
 		<netconf4j.version>0.0.9b</netconf4j.version>
 		<pax-logging.version>1.6.10</pax-logging.version>
-		<commons-io.version>1.4</commons-io.version>
+		<commons-io.version>2.7</commons-io.version>
 		<sshd.version>0.9.0</sshd.version>
 		<junit.version>4.10</junit.version>
 	</properties>
